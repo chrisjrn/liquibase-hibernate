@@ -6,6 +6,7 @@ import liquibase.snapshot.InvalidExampleException;
 import liquibase.structure.DatabaseObject;
 import liquibase.structure.core.*;
 
+import java.util.Comparator;
 import java.util.Iterator;
 
 public class IndexSnapshotGenerator extends HibernateSnapshotGenerator {
@@ -30,10 +31,14 @@ public class IndexSnapshotGenerator extends HibernateSnapshotGenerator {
             Index index = new Index();
             index.setTable(table);
             index.setName(hibernateIndex.getName());
+            index.setUnique(isUniqueIndex(hibernateIndex));
             Iterator columnIterator = hibernateIndex.getColumnIterator();
             while (columnIterator.hasNext()) {
                 org.hibernate.mapping.Column hibernateColumn = (org.hibernate.mapping.Column) columnIterator.next();
                 index.getColumns().add(new Column(hibernateColumn.getName()).setRelation(table));
+            }
+            if (hibernateIndex.getColumnSpan() > 1) {
+                index.getColumns().sort(Comparator.comparing(Column::getName).reversed());
             }
 
             if (index.getColumnNames().equalsIgnoreCase(((Index) example).getColumnNames())) {
@@ -63,10 +68,14 @@ public class IndexSnapshotGenerator extends HibernateSnapshotGenerator {
                 Index index = new Index();
                 index.setTable(table);
                 index.setName(hibernateIndex.getName());
-                Iterator columnIterator = hibernateIndex.getColumnIterator();
+                index.setUnique(isUniqueIndex(hibernateIndex));
+                Iterator<org.hibernate.mapping.Column> columnIterator = hibernateIndex.getColumnIterator();
                 while (columnIterator.hasNext()) {
-                    org.hibernate.mapping.Column hibernateColumn = (org.hibernate.mapping.Column) columnIterator.next();
+                    org.hibernate.mapping.Column hibernateColumn = columnIterator.next();
                     index.getColumns().add(new Column(hibernateColumn.getName()).setRelation(table));
+                }
+                if (hibernateIndex.getColumnSpan() > 1) {
+                    index.getColumns().sort(Comparator.comparing(Column::getName).reversed());
                 }
                 LOG.info("Found index " + index.getName());
                 table.getIndexes().add(index);
@@ -74,4 +83,16 @@ public class IndexSnapshotGenerator extends HibernateSnapshotGenerator {
         }
     }
 
+    private Boolean isUniqueIndex(org.hibernate.mapping.Index hibernateIndex) {
+        /*
+        This seems to be necessary to explicitly tell liquibase that there's no
+        actual diff in certain non-unique indexes
+        */
+        if (hibernateIndex.getColumnSpan() == 1) {
+            org.hibernate.mapping.Column col = hibernateIndex.getColumnIterator().next();
+            return col.isUnique();
+        } else {
+            return false;
+        }
+    }
 }
