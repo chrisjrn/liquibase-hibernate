@@ -38,6 +38,7 @@ public class UniqueConstraintSnapshotGenerator extends HibernateSnapshotGenerato
             if (hibernateTable == null) {
                 return;
             }
+
             Iterator uniqueIterator = hibernateTable.getUniqueKeyIterator();
             while (uniqueIterator.hasNext()) {
                 org.hibernate.mapping.UniqueKey hibernateUnique = (org.hibernate.mapping.UniqueKey) uniqueIterator.next();
@@ -45,6 +46,8 @@ public class UniqueConstraintSnapshotGenerator extends HibernateSnapshotGenerato
                 UniqueConstraint uniqueConstraint = new UniqueConstraint();
                 uniqueConstraint.setName(hibernateUnique.getName());
                 uniqueConstraint.setTable(table);
+                uniqueConstraint.setClustered(false);  // Required to stop seeing spurious diffs
+
                 Iterator columnIterator = hibernateUnique.getColumnIterator();
                 int i = 0;
                 while (columnIterator.hasNext()) {
@@ -56,6 +59,7 @@ public class UniqueConstraintSnapshotGenerator extends HibernateSnapshotGenerato
                 Index index = getBackingIndex(uniqueConstraint, hibernateTable, snapshot);
                 uniqueConstraint.setBackingIndex(index);
 
+
                 LOG.info("Found unique constraint " + uniqueConstraint.toString());
                 table.getUniqueConstraints().add(uniqueConstraint);
             }
@@ -65,6 +69,8 @@ public class UniqueConstraintSnapshotGenerator extends HibernateSnapshotGenerato
                 if (column.isUnique()) {
                     UniqueConstraint uniqueConstraint = new UniqueConstraint();
                     uniqueConstraint.setTable(table);
+                    uniqueConstraint.setClustered(false);  // Required to stop seeing spurious diffs
+
                     String name = "UC_" + table.getName().toUpperCase() + column.getName().toUpperCase() + "_COL";
                     if (name.length() > 64) {
                         name = name.substring(0, 63);
