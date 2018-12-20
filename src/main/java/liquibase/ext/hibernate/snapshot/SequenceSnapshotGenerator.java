@@ -56,10 +56,10 @@ public class SequenceSnapshotGenerator extends HibernateSnapshotGenerator {
                     );
                     if (ig instanceof SequenceGenerator) {
                         SequenceGenerator sequenceGenerator = (SequenceGenerator) ig;
-                        createSequence(sequenceGenerator.getSequenceName(), schema);
+                        createSequence(sequenceGenerator.getSequenceName(), sequenceGenerator.allocationSize(), schema);
                     } else if (ig instanceof SequenceStyleGenerator) {
                         SequenceStyleGenerator sequenceGenerator = (SequenceStyleGenerator) ig;
-                        createSequence((String) sequenceGenerator.generatorKey(), schema);
+                        createSequence((String) sequenceGenerator.generatorKey(), 1, schema); // TODO: figure out the correct increment
                     }
                 }
 
@@ -67,9 +67,10 @@ public class SequenceSnapshotGenerator extends HibernateSnapshotGenerator {
         }
     }
 
-    private void createSequence(String sequenceName, Schema schema) {
+    private void createSequence(String sequenceName, int increment, Schema schema) {
         Sequence sequence = new Sequence();
         sequence.setName(sequenceName);
+        sequence.setIncrementBy(increment);
         sequence.setSchema(schema);
         schema.addDatabaseObject(sequence);
     }
