@@ -59,11 +59,11 @@ public class SequenceSnapshotGenerator extends HibernateSnapshotGenerator {
                     if (ig instanceof SequenceGenerator) {
                         SequenceGenerator sequenceGenerator = (SequenceGenerator) ig;
                         createSequence(sequenceGenerator.getSequenceName(), schema);
-                        System.err.println(sequenceGenerator.getSequenceName() + " is a SequenceGenerator))
+                        System.err.println(sequenceGenerator.getSequenceName() + " is a SequenceGenerator");
                     } else if (ig instanceof SequenceStyleGenerator) {
                         SequenceStyleGenerator sequenceGenerator = (SequenceStyleGenerator) ig;
                         createSequence((String) sequenceGenerator.generatorKey(), schema); // TODO: figure out the correct increment
-                        System.err.println((String) sequenceGenerator.generatorKey() + " is a SequenceStyleGenerator))
+                        System.err.println((String) sequenceGenerator.generatorKey() + " is a SequenceStyleGenerator");
                     }
                 }
 
