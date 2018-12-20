@@ -14,6 +14,7 @@ import org.hibernate.id.enhanced.SequenceStyleGenerator;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.RootClass;
 
+import java.math.BigInteger;
 import java.util.Iterator;
 
 /**
@@ -70,7 +71,7 @@ public class SequenceSnapshotGenerator extends HibernateSnapshotGenerator {
     private void createSequence(String sequenceName, int increment, Schema schema) {
         Sequence sequence = new Sequence();
         sequence.setName(sequenceName);
-        sequence.setIncrementBy(increment);
+        sequence.setIncrementBy(BigInteger.valueOf(increment));
         sequence.setSchema(schema);
         schema.addDatabaseObject(sequence);
     }
