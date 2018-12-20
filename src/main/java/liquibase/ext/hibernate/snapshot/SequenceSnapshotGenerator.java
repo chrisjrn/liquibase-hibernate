@@ -10,6 +10,7 @@ import liquibase.structure.core.Sequence;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.id.SequenceGenerator;
+import org.hibernate.id.enhanced.DatabaseStructure;
 import org.hibernate.id.enhanced.SequenceStyleGenerator;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.RootClass;
@@ -58,12 +59,11 @@ public class SequenceSnapshotGenerator extends HibernateSnapshotGenerator {
                     
                     if (ig instanceof SequenceGenerator) {
                         SequenceGenerator sequenceGenerator = (SequenceGenerator) ig;
-                        createSequence(sequenceGenerator.getSequenceName(), schema);
-                        System.err.println(sequenceGenerator.getSequenceName() + " is a SequenceGenerator");
+                        createSequence(sequenceGenerator.getSequenceName(), 1, schema); // TODO: figure out correct increment size
                     } else if (ig instanceof SequenceStyleGenerator) {
                         SequenceStyleGenerator sequenceGenerator = (SequenceStyleGenerator) ig;
-                        createSequence((String) sequenceGenerator.generatorKey(), schema); // TODO: figure out the correct increment
-                        System.err.println((String) sequenceGenerator.generatorKey() + " is a SequenceStyleGenerator");
+                        DatabaseStructure structure = sequenceGenerator.getDatabaseStructure();
+                        createSequence(structure.getName(), structure.getIncrementSize(), schema);
                     }
                 }
 
@@ -71,9 +71,10 @@ public class SequenceSnapshotGenerator extends HibernateSnapshotGenerator {
         }
     }
 
-    private void createSequence(String sequenceName, Schema schema) {
+    private void createSequence(String sequenceName, int incrementBy, Schema schema) {
         Sequence sequence = new Sequence();
         sequence.setName(sequenceName);
+        sequence.setIncrementBy(BigInteger.valueOf(incrementBy));
         sequence.setSchema(schema);
         schema.addDatabaseObject(sequence);
     }
